@@ -167,8 +167,20 @@ export async function POST(req) {
 
     let captcha;
     if (isSecretMissing) {
-      // If the secret key is missing or clearly not set, skip verification but log a warning.
-      console.warn("TURNSTILE_SECRET_KEY is not set. Skipping captcha verification. This should only be used for local development.");
+      const isProduction = process.env.NODE_ENV === "production";
+      const explicitBypass = process.env.TURNSTILE_BYPASS === "true";
+
+      if (isProduction && !explicitBypass) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Server misconfigured: CAPTCHA secret key is not set." }),
+          { status: 500, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      if (!explicitBypass) {
+        console.warn("TURNSTILE_SECRET_KEY is not set. Skipping captcha verification. This should only be used for local development.");
+      }
+
       captcha = { ok: true };
     } else {
       // If a real key exists (like on production), run the strict verification check!
