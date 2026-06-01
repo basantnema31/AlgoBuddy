@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useUser } from "@/app/contexts/UserContext";
+import { useUser } from "@/features/user/UserContext";
 
 const Turnstile = dynamic(
   () => import("@marsidev/react-turnstile").then((mod) => mod.Turnstile),

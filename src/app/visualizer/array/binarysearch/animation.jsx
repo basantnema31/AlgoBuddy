@@ -9,7 +9,7 @@ import useVisualizerKeyboard from "@/app/hooks/useVisualizerKeyboard";
 import usePlayback from "@/app/hooks/usePlayback";
 import PlaybackControls from "@/app/components/ui/PlaybackControls";
 import useVisualizerReset from "@/app/hooks/useVisualizerReset";
-import { useVisualizerSession } from "@/app/contexts/VisualizerSessionContext";
+import { useVisualizerSession } from "@/features/collaboration/VisualizerSessionContext";
 
 const getFontSize = (value) => {
   const len = String(value).length;

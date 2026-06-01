@@ -4,7 +4,7 @@ import { Play, Pause } from "lucide-react";
 import ResetButton from "@/app/components/ui/resetButton";
 import GoButton from "@/app/components/ui/goButton";
 import usePlayback from "@/app/hooks/usePlayback";
-import { useVisualizerSession } from "@/app/contexts/VisualizerSessionContext";
+import { useVisualizerSession } from "@/features/collaboration/VisualizerSessionContext";
 import useVisualizerReset from "@/app/hooks/useVisualizerReset";
 import { saveToStorage, loadFromStorage } from "@/utils/storage";
 

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { useUser } from "@/app/contexts/UserContext";
+import { useUser } from "@/features/user/UserContext";
 import { toast } from "react-hot-toast";
 
 const STORAGE_KEY = "algobuddy_problem_bookmarks";

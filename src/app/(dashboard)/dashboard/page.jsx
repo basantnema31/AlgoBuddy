@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useUser } from "@/app/contexts/UserContext";
+import { useUser } from "@/features/user/UserContext";
 import Link from "next/link";
 import ActivityDashboard from "@/app/components/dashboard/ActivityDashboard";
 import PracticeStats from "@/app/components/dashboard/PracticeStats";

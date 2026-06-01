@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useUser } from "@/app/contexts/UserContext";
+import { useUser } from "@/features/user/UserContext";
 import { toast } from "react-hot-toast";
 import { TriangleAlert } from "lucide-react";
 import { useEffect } from "react";

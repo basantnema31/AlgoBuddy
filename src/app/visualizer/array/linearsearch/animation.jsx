@@ -7,7 +7,8 @@ import useVisualizerKeyboard from "@/app/hooks/useVisualizerKeyboard";
 import usePlayback from "@/app/hooks/usePlayback";
 import PlaybackControls from "@/app/components/ui/PlaybackControls";
 import useVisualizerReset from "@/app/hooks/useVisualizerReset";
-import { useVisualizerSession } from "@/app/contexts/VisualizerSessionContext";
+import { useVisualizerSession } from "@/features/collaboration/VisualizerSessionContext";
+import { linearSearchGenerator } from "@/features/algorithms/array/linearSearchLogic";
 
 const getFontSize = (value) => {
   const len = String(value).length;
@@ -146,42 +147,43 @@ const targetValue = parseInt(target);
 
   const animateLinearSearch = async (arr, targetValue) => {
     isSearchingRef.current = true;
+    const generator = linearSearchGenerator(arr, targetValue);
 
-    for (let index = 0; index < arr.length; index++) {
-      if (!isSearchingRef.current) return;
-      setCurrentIndex(index);
-
-      // highlight current
-      elementRefs.current.forEach((ref, idx) => {
-        if (!ref) return;
-        if (idx === index) {
-          gsap.to(ref, { backgroundColor: "#EAB308", borderColor: "#A16207", duration: 0.3 });
-        } else if (idx < index) {
-          gsap.to(ref, { backgroundColor: "#93C5FD", borderColor: "#3B82F6", duration: 0.3 });
-        } else {
-          gsap.to(ref, { backgroundColor: "#E5E7EB", borderColor: "#D1D5DB", duration: 0.3 });
-        }
-      });
-
-      await cancellableDelay();
+    for (const frame of generator) {
       if (!isSearchingRef.current) return;
 
-      if (arr[index] === targetValue) {
-        setFoundIndex(index);
-        setMessage(`Element ${targetValue} found at index ${index}!`);
+      if (frame.type === 'checking') {
+        setCurrentIndex(frame.index);
+        
+        // highlight current
+        elementRefs.current.forEach((ref, idx) => {
+          if (!ref) return;
+          if (idx === frame.index) {
+            gsap.to(ref, { backgroundColor: "#EAB308", borderColor: "#A16207", duration: 0.3 });
+          } else if (idx < frame.index) {
+            gsap.to(ref, { backgroundColor: "#93C5FD", borderColor: "#3B82F6", duration: 0.3 });
+          } else {
+            gsap.to(ref, { backgroundColor: "#E5E7EB", borderColor: "#D1D5DB", duration: 0.3 });
+          }
+        });
+
+        await cancellableDelay();
+      } else if (frame.type === 'found') {
+        setFoundIndex(frame.index);
+        setMessage(`Element ${targetValue} found at index ${frame.index}!`);
         setMessageType("success"); // FIX: found → green
         setIsAnimating(false);
         isSearchingRef.current = false;
-        gsap.to(elementRefs.current[index], { backgroundColor: "#22C55E", borderColor: "#15803D", duration: 0.3 });
+        gsap.to(elementRefs.current[frame.index], { backgroundColor: "#22C55E", borderColor: "#15803D", duration: 0.3 });
+        return;
+      } else if (frame.type === 'not_found') {
+        setMessage(`Element ${targetValue} not found in the array.`);
+        setMessageType("error"); // FIX: search result "not found" → red
+        setIsAnimating(false);
+        isSearchingRef.current = false;
         return;
       }
     }
-
-    if (!isSearchingRef.current) return;
-    setMessage(`Element ${targetValue} not found in the array.`);
-    setMessageType("error"); // FIX: search result "not found" → red
-    setIsAnimating(false);
-    isSearchingRef.current = false;
   };
 
   const { registerCallbacks, unregisterCallbacks } = useVisualizerSession();

@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 import Editor from "@monaco-editor/react";
 import { useTheme } from "next-themes";
-import { useUser } from "@/app/contexts/UserContext";
+import { useUser } from "@/features/user/UserContext";
 import { useCollaboration } from "@/app/components/ui/useCollaboration";
 import useVisualizerKeyboard from "@/app/hooks/useVisualizerKeyboard";
 

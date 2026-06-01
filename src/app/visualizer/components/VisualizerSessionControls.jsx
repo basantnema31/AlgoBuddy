@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useVisualizerSession } from "@/app/contexts/VisualizerSessionContext";
+import { useVisualizerSession } from "@/features/collaboration/VisualizerSessionContext";
 import { FiDownload, FiUpload } from "react-icons/fi";
 
 export default function VisualizerSessionControls() {

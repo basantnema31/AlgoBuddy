@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useUser } from "@/app/contexts/UserContext";
+import { useUser } from "@/features/user/UserContext";
 import { supabase } from "@/lib/supabase";
 import { Moon, Sun, Menu, X, ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
 import { NAV_LINKS } from "./navLinks";

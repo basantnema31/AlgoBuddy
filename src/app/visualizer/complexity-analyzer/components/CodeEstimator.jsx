@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import Editor from "@monaco-editor/react";
 import { useTheme } from "next-themes";
-import { useUser } from "@/app/contexts/UserContext";
+import { useUser } from "@/features/user/UserContext";
 import ReactMarkdown from "react-markdown";
 import { 
   Code2, 

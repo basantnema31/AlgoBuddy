@@ -1,8 +1,8 @@
 import "./globals.css";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { UserProvider } from "@/app/contexts/UserContext";
-import { VisualizerSessionProvider } from "@/app/contexts/VisualizerSessionContext";
+import { UserProvider } from "@/features/user/UserContext";
+import { VisualizerSessionProvider } from "@/features/collaboration/VisualizerSessionContext";
 import ClientLayoutWrapper from "@/app/components/ui/ClientLayoutWrapper";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
