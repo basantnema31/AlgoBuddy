@@ -100,9 +100,11 @@ export async function POST(request, { params }) {
     return Response.json({ error: result.error }, { status: result.status || 400 });
   }
 
-  await updateCollaborationSession(result.session.id, {
-    participantCount: Math.max(0, (result.session?.participantCount || 0) + 1),
-  });
+  if (result.isNewParticipant) {
+    await updateCollaborationSession(result.session.id, {
+      participantCount: Math.max(0, (result.session?.participantCount || 0) + 1),
+    });
+  }
 
   return Response.json(result);
 }
