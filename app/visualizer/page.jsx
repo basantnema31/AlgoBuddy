@@ -498,6 +498,7 @@ const sections = [
           },
           { name: "Segment Trees", path: "/visualizer/trees/advanced/segment" },
           { name: "Fenwick Trees", path: "/visualizer/trees/advanced/fenwick" },
+          { name: "Disjoint Set Union (DSU)", path: "/visualizer/trees/advanced/dsu" },
         ],
       },
       {
@@ -698,6 +699,10 @@ const sections = [
           {
             name: "Alpha Beta Pruning",
             path: "/visualizer/ai/alpha-beta-pruning",
+          },
+          {
+            name: "Monte Carlo Tree Search (MCTS)",
+            path: "/visualizer/ai/mcts",
           },
         ],
       },
