@@ -5,6 +5,7 @@ import CustomArrayInput from "@/app/components/ui/customArrayInput";
 import useVisualizerKeyboard from "@/app/hooks/useVisualizerKeyboard";
 import usePlayback from "@/app/hooks/usePlayback";
 import PlaybackControls from "@/app/components/ui/PlaybackControls";
+import { countingSortGenerator } from "@/features/algorithms/array/countingSortLogic";
 
 const getFontSize = (value) => {
   const len = String(value).length;
@@ -69,69 +70,72 @@ const CountingSortVisualizer = () => {
     isSortingRef.current = true;
     setSorting(true);
     setSorted(false);
-    const arr = [...array];
-    const n = arr.length;
-    const maxVal = Math.max(...arr);
-    const count = new Array(maxVal + 1).fill(0);
-    const result = new Array(n).fill(null);
 
-    setCounts([...count]);
-    setOutput([...result]);
-    setTotalSteps(n + maxVal + 1 + n);
-    setCurrentStep(0);
-    setCurrentPhase("Counting Phase");
-    setStepExplanation("Scanning the input array and counting how often each value appears.");
+    const generator = countingSortGenerator(array);
 
-    for (let i = 0; i < n; i++) {
+    for (const frame of generator) {
       if (!isSortingRef.current) return;
-      const value = arr[i];
-      setCurrentIndices({ current: i, countIndex: value, outputIndex: -1 });
-      setStepExplanation(`Incrementing count for value ${value} at index ${value}.`);
-      count[value] += 1;
-      setCounts([...count]);
-      setComparisons((prev) => prev + 1);
-      setCurrentStep((prev) => prev + 1);
-      await cancellableDelay();
-    }
+      const { type, payload } = frame;
 
-    setCurrentPhase("Prefix Sum Phase");
-    setStepExplanation(`Building cumulative counts to determine final sorted positions.`);
-    for (let i = 1; i < count.length; i++) {
-      if (!isSortingRef.current) return;
-      setCurrentIndices({ current: -1, countIndex: i, outputIndex: -1 });
-      setStepExplanation(`Computing cumulative count for value ${i} (previous total ${count[i - 1]}).`);
-      count[i] += count[i - 1];
-      setCounts([...count]);
-      setCurrentStep((prev) => prev + 1);
-      await cancellableDelay();
+      if (type === 'init') {
+        setCounts(payload.count);
+        setOutput(payload.result);
+        setTotalSteps(payload.totalSteps);
+        setCurrentStep(0);
+      }
+      else if (type === 'counting_start') {
+        setCurrentPhase("Counting Phase");
+        setStepExplanation("Scanning the input array and counting how often each value appears.");
+      }
+      else if (type === 'counting') {
+        setCurrentIndices({ current: payload.current, countIndex: payload.countIndex, outputIndex: -1 });
+        setStepExplanation(`Incrementing count for value ${payload.value} at index ${payload.value}.`);
+        setComparisons(payload.comparisons);
+        setCurrentStep(payload.step);
+        await cancellableDelay();
+      }
+      else if (type === 'counted') {
+        setCounts(payload.count);
+      }
+      else if (type === 'prefix_start') {
+        setCurrentPhase("Prefix Sum Phase");
+        setStepExplanation(`Building cumulative counts to determine final sorted positions.`);
+      }
+      else if (type === 'prefix') {
+        setCurrentIndices({ current: -1, countIndex: payload.countIndex, outputIndex: -1 });
+        setStepExplanation(`Computing cumulative count for value ${payload.value} (previous total ${payload.prevTotal}).`);
+        setCurrentStep(payload.step);
+        await cancellableDelay();
+      }
+      else if (type === 'prefixed') {
+        setCounts(payload.count);
+      }
+      else if (type === 'placement_start') {
+        setCurrentPhase("Placement Phase");
+        setStepExplanation(`Placing elements into the output array using the count positions.`);
+      }
+      else if (type === 'placement') {
+        setCurrentIndices({ current: payload.current, countIndex: payload.countIndex, outputIndex: payload.position });
+        setStepExplanation(`Placing ${payload.value} into output index ${payload.position}.`);
+        setCurrentStep(payload.step);
+        await cancellableDelay();
+      }
+      else if (type === 'placed') {
+        setOutput(payload.result);
+        setCounts(payload.count);
+        setSwaps(payload.swaps);
+      }
+      else if (type === 'completed') {
+        setArray(payload.arr);
+        setOutput(payload.result);
+        setSorting(false);
+        setSorted(true);
+        setCurrentPhase("Completed");
+        setStepExplanation("Array is fully sorted using Counting Sort.");
+        isSortingRef.current = false;
+        setCurrentIndices({ current: -1, countIndex: -1, outputIndex: -1 });
+      }
     }
-
-    setCurrentPhase("Placement Phase");
-    setStepExplanation(`Placing elements into the output array using the count positions.`);
-    for (let i = n - 1; i >= 0; i--) {
-      if (!isSortingRef.current) return;
-      const value = arr[i];
-      const position = count[value] - 1;
-      result[position] = value;
-      count[value] -= 1;
-      setOutput([...result]);
-      setCounts([...count]);
-      setCurrentIndices({ current: i, countIndex: value, outputIndex: position });
-      setStepExplanation(`Placing ${value} into output index ${position}.`);
-      setSwaps((prev) => prev + 1);
-      setCurrentStep((prev) => prev + 1);
-      await cancellableDelay();
-    }
-
-    if (!isSortingRef.current) return;
-    setArray([...result]);
-    setOutput([...result]);
-    setSorting(false);
-    setSorted(true);
-    setCurrentPhase("Completed");
-    setStepExplanation("Array is fully sorted using Counting Sort.");
-    isSortingRef.current = false;
-    setCurrentIndices({ current: -1, countIndex: -1, outputIndex: -1 });
   };
 
   const reset = () => {
