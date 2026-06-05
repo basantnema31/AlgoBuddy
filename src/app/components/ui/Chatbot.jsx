@@ -540,6 +540,21 @@ export default function Chatbot() {
     e.target.style.height = Math.min(e.target.scrollHeight, 108) + "px";
   };
 
+  // ─── Listen for custom explain events ─────────────────────────────────────────
+  useEffect(() => {
+    const handleExplain = (e) => {
+      const { prompt } = e.detail;
+      setIsOpen(true);
+      // Slight delay to ensure Chatbot is fully open and focused before sending
+      setTimeout(() => {
+        sendMessage(prompt);
+      }, 50);
+    };
+
+    window.addEventListener("chatbot-explain", handleExplain);
+    return () => window.removeEventListener("chatbot-explain", handleExplain);
+  }, [sendMessage]);
+
   // ─── Render ───────────────────────────────────────────────────────────────────
 
   return (

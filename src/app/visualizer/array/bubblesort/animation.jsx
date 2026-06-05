@@ -221,6 +221,20 @@ const BubbleSortVisualizer = () => {
     sorted,
   });
 
+  const handleExplainStep = () => {
+    const prompt = `I am currently looking at the Bubble Sort algorithm, at step ${currentStep} of ${totalSteps}.
+Phase: ${currentPhase}
+Explanation on screen: ${stepExplanation}
+Current Array State: [${array.join(", ")}]
+Currently comparing indices: i = ${currentIndices.i}, j = ${currentIndices.j}
+
+Please explain exactly what is happening in this step in detail.`;
+    
+    window.dispatchEvent(
+      new CustomEvent("chatbot-explain", { detail: { prompt } })
+    );
+  };
+
   return (
     <main className="container mx-auto px-6 pb-4">
       <p className="text-lg text-center text-gray-600 dark:text-gray-400 mb-8">
@@ -270,6 +284,7 @@ const BubbleSortVisualizer = () => {
               onTogglePlayPause={togglePlayPause}
               speed={speed}
               onSpeedChange={setSpeed}
+              onExplainStep={handleExplainStep}
             />
           )}
 
