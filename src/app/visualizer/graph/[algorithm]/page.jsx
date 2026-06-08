@@ -12,6 +12,8 @@ export async function generateStaticParams() {
     { algorithm: "prim" },
     { algorithm: "kruskal" },
     { algorithm: "topological-sort" },
+    { algorithm: "kosaraju" },
+    { algorithm: "tarjan" },
     { algorithm: "adjacency-list" },
     { algorithm: "adjacency-matrix" },
   ];
