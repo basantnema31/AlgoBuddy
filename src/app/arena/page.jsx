@@ -67,6 +67,29 @@ const LEARNING_RECOMMENDATIONS = [
   }
 ];
 
+const LEARNING_TIMELINE = [
+  {
+    title: "Arrays Module Completed",
+    date: "12 May 2026",
+    color: "bg-purple-500",
+  },
+  {
+    title: "7-Day Learning Streak",
+    date: "18 May 2026",
+    color: "bg-green-500",
+  },
+  {
+    title: "Binary Search Master Badge",
+    date: "25 May 2026",
+    color: "bg-yellow-500",
+  },
+  {
+    title: "100 Problems Solved",
+    date: "01 June 2026",
+    color: "bg-blue-500",
+  },
+];
+
 function getInitials(name) {
   if (!name) return "??";
   const cleanName = name.includes("@") ? name.split("@")[0] : name;
@@ -660,6 +683,34 @@ export default function ArenaPage() {
                 <span className="font-semibold text-slate-700 dark:text-neutral-300">Next Reward: Level 18 🎁</span>
               </div>
             </div>
+
+            <div className="bg-white dark:bg-neutral-800 border border-slate-100 dark:border-neutral-800/80 rounded-2xl p-5 shadow-sm">
+  <div className="flex items-center justify-between mb-4">
+    <h3 className="text-sm font-bold text-slate-800 dark:text-neutral-200">
+      📈 Learning Timeline
+    </h3>
+
+    <span className="text-[10px] text-slate-400">
+      DSA Journey
+    </span>
+  </div>
+
+  <div className="space-y-4">
+    {LEARNING_TIMELINE.map((item, index) => (
+      <div key={index} className="relative pl-5 border-l-2 border-slate-200">
+        <div
+          className={`absolute -left-[7px] top-1 w-3 h-3 rounded-full ${item.color}`}
+        />
+        <p className="text-xs font-semibold">
+          {item.title}
+        </p>
+        <p className="text-[10px] text-slate-500">
+          {item.date}
+        </p>
+      </div>
+    ))}
+  </div>
+</div>
 
             {/* Smart Revision Planner */}
 <div className="bg-white dark:bg-neutral-800 border border-slate-100 dark:border-neutral-800/80 rounded-2xl p-5 shadow-sm">
