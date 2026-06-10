@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class PracticeService {
     private final UserPracticeStatsRepository statsRepository;
 
     @Autowired
+    @Lazy
     private PracticeService self;
 
     @Transactional(readOnly = true)
