@@ -8,7 +8,13 @@ import com.algobuddy.backend.entity.UserProgress;
 import com.algobuddy.backend.repository.UserPracticeStatsRepository;
 import com.algobuddy.backend.repository.UserProgressRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -23,8 +29,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PracticeService {
 
+    private static final Logger log = LoggerFactory.getLogger(PracticeService.class);
+
     private final UserProgressRepository progressRepository;
     private final UserPracticeStatsRepository statsRepository;
+
+    @Autowired
+    @Lazy
+    private PracticeService self;
 
     @Transactional(readOnly = true)
     public ProgressResponse getUserProgress(UUID userId) {
@@ -37,7 +49,7 @@ public class PracticeService {
                 ));
 
         UserPracticeStats stats = statsRepository.findById(userId)
-                .orElse(new UserPracticeStats(userId, 0, 0, null, 0));
+                .orElse(new UserPracticeStats(userId, 0, 0, null, 0, 0));
 
         OffsetDateTime now = OffsetDateTime.now();
         OffsetDateTime startOfDay = now.toLocalDate().atStartOfDay(now.getOffset()).toOffsetDateTime();
@@ -94,7 +106,7 @@ public class PracticeService {
 
         // 2. Update Daily Streak
         if ("Completed".equals(request.getStatus())) {
-            updateStreak(userId);
+            self.updateStreakWithRetry(userId);
         }
         
         return getUserProgress(userId);
@@ -134,15 +146,32 @@ public class PracticeService {
 
         // Only update streak once even if multiple problems were completed
         if (anyCompleted) {
-            updateStreak(userId);
+            self.updateStreakWithRetry(userId);
         }
 
         return getUserProgress(userId);
     }
 
-    private void updateStreak(UUID userId) {
+    public void updateStreakWithRetry(UUID userId) {
+        final int MAX_RETRIES = 3;
+        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                self.updateStreak(userId);
+                return;
+            } catch (ObjectOptimisticLockingFailureException e) {
+                if (attempt == MAX_RETRIES) {
+                    log.error("Failed to update streak for user {} after {} attempts", userId, MAX_RETRIES, e);
+                    throw e;
+                }
+                log.warn("Optimistic lock failure for user {}, retry attempt {}/{}", userId, attempt, MAX_RETRIES);
+            }
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateStreak(UUID userId) {
         UserPracticeStats stats = statsRepository.findById(userId)
-                .orElse(new UserPracticeStats(userId, 0, 0, null, 0));
+                .orElse(new UserPracticeStats(userId, 0, 0, null, 0, 0));
 
         LocalDate today = LocalDate.now();
         LocalDate lastActive = stats.getLastActiveDate();
