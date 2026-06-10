@@ -51,6 +51,7 @@ export const sections = [
         title: "Interview Patterns",
         items: [
           { name: "Sliding Window", path: "/visualizer/array/slidingwindow" },
+          { name: "Two Pointers", path: "/visualizer/array/twopointers" },
         ],
       },
     ],
