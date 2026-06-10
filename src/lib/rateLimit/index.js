@@ -1,8 +1,8 @@
-import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { jwtVerify } from "jose";
 import { getClientIp } from "@/lib/getClientIp";
 
+const RATE_LIMIT_KEY_PREFIX = "rl:";
 const store = new Map();
 
 function gc() {
@@ -43,20 +43,21 @@ export function createRateLimiter(options) {
   async function check(key) {
     const now = Date.now();
     const windowMs = windowSeconds * 1000;
+    const redisKey = `${RATE_LIMIT_KEY_PREFIX}${key}`;
 
     if (redis) {
       const uniqueMember = `${now}-${Math.random().toString(36).slice(2, 10)}`;
       const result = await redis
         .pipeline()
-        .zadd(key, { score: now, member: uniqueMember })
-        .zremrangebyscore(key, 0, now - windowMs)
-        .zcard(key)
-        .expire(key, windowSeconds)
+        .zadd(redisKey, { score: now, member: uniqueMember })
+        .zremrangebyscore(redisKey, 0, now - windowMs)
+        .zcard(redisKey)
+        .expire(redisKey, windowSeconds)
         .exec();
 
       const count = result[2];
       if (count > maxRequests) {
-        const oldestArray = await redis.zrange(key, 0, 0);
+        const oldestArray = await redis.zrange(redisKey, 0, 0);
         let oldest = now;
         if (oldestArray?.[0]) {
           const ts = Number(oldestArray[0].split("-")[0]);
@@ -126,7 +127,7 @@ export async function checkRateLimit(key) {
 
 export async function resetKey(key) {
   if (redis) {
-    try { await redis.del(key); } catch {}
+    try { await redis.del(`${RATE_LIMIT_KEY_PREFIX}${key}`); } catch {}
   }
   store.delete(key);
 }
@@ -134,9 +135,25 @@ export async function resetKey(key) {
 export async function resetAll() {
   if (redis) {
     try {
-      const keys = await redis.keys("*");
-      if (keys && keys.length > 0) await redis.del(...keys);
-    } catch {}
+      let cursor = 0;
+      const keysToDelete = [];
+      do {
+        const result = await redis.scan(cursor, {
+          match: `${RATE_LIMIT_KEY_PREFIX}*`,
+          count: 100,
+        });
+        cursor = Number(result[0]);
+        keysToDelete.push(...result[1]);
+      } while (cursor !== 0);
+
+      if (keysToDelete.length > 0) {
+        for (let i = 0; i < keysToDelete.length; i += 100) {
+          await redis.del(...keysToDelete.slice(i, i + 100));
+        }
+      }
+    } catch (err) {
+      console.error("[rateLimit] Error during resetAll:", err);
+    }
   }
   store.clear();
 }
