@@ -76,7 +76,7 @@ export async function proxy(request) {
     }
   }
 
-    return supabaseResponse;
+  return supabaseResponse;
 }
 
 export const config = {
