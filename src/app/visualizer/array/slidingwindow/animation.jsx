@@ -6,7 +6,6 @@ import GoButton from "@/app/components/ui/goButton";
 import PlaybackControls from "@/app/components/ui/PlaybackControls";
 import useVisualizerKeyboard from "@/app/hooks/useVisualizerKeyboard";
 import { useAnimationEngine } from "@/lib/visualizer/useAnimationEngine";
-
 import { 
   generateStatesFixedMax, 
   generateStatesFixedAvg, 
@@ -90,6 +89,21 @@ const Animation = () => {
 
   // Animate the element background and border colors whenever visualState changes
   useEffect(() => {
+    // Call any reset initialization logic here if needed
+  }, []);
+
+  const animateStep = useCallback(() => {
+    if (currentStateIdxRef.current >= stateQueueRef.current.length) {
+      setIsAnimating(false);
+      setMessage("Visualization completed.");
+      setMessageType("success");
+      setShowQuiz(true);
+      return;
+    }
+
+    const state = stateQueueRef.current[currentStateIdxRef.current];
+    const delay = 1500 / 1; // Replace speedRef.current with actual speed value
+
     elementRefs.current.forEach((ref, index) => {
       if (!ref) return;
       const activeWindow = visualState.activeWindow || [-1, -1];
@@ -367,7 +381,7 @@ Please explain exactly what is happening in this step in detail.`;
       )}
 
       {dataArray.length > 0 && (
-         <div ref={visualizerRef}>
+         <div ref={animationRef}>
         <div className="max-w-5xl mx-auto space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col justify-center">
