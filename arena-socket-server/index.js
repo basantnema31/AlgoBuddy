@@ -11,7 +11,21 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000", "https://algobuddy.vercel.app", "https://www.algobuddy.me", "https://algobuddy.me"],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const allowed = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://algobuddy.vercel.app",
+        "https://www.algobuddy.me",
+        "https://algobuddy.me"
+      ];
+      if (allowed.includes(origin) || origin.endsWith(".vercel.app")) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST"],
   },
 });

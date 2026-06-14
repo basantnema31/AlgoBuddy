@@ -114,7 +114,7 @@ export default function DuelSimulatorModal({ isOpen, onClose, opponent, currentU
 
       const springBootBase = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
         ? "http://localhost:8080" 
-        : "https://algobuddy-backend.onrender.com";
+        : "https://algobuddy-backend-7iwv.onrender.com";
 
       await fetch(`${springBootBase}/api/v1/arena/match-result`, {
         method: "POST",

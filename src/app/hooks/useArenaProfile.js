@@ -10,7 +10,7 @@ function springBootBase() {
       return "http://localhost:8080";
     }
   }
-  return "https://algobuddy-backend.onrender.com";
+  return "https://algobuddy-backend-7iwv.onrender.com";
 }
 
 export function useArenaProfile(user) {
