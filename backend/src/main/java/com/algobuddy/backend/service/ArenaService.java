@@ -118,17 +118,29 @@ public class ArenaService {
     @Transactional
     public void recordMatchResult(UUID requestingUserId, com.algobuddy.backend.dto.RecordMatchRequest request) {
         if (request.getMatchId() != null && !request.getMatchId().isEmpty()) {
-            // Check if match is already recorded to prevent double updates if both clients send the request
-            // Note: Since matchId is stored locally or partially, and we don't have a matchId column in ArenaMatch right now,
-            // we will just proceed. A real robust app would check an indexed matchId column.
-            // For now, we only trigger the API from the winner's side in the frontend to avoid double updates.
+            if (matchRepository.existsByMatchId(request.getMatchId())) {
+                throw new IllegalArgumentException("Match result already recorded for matchId: " + request.getMatchId());
+            }
+        } else {
+            throw new IllegalArgumentException("matchId cannot be null or empty");
         }
         
         UUID opponentId = request.getOpponentId();
         boolean isWinner = request.isWinner();
         
-        UserArenaProfile p1Profile = profileRepository.findById(requestingUserId).orElseGet(() -> createDefaultProfile(requestingUserId));
-        UserArenaProfile p2Profile = profileRepository.findById(opponentId).orElseGet(() -> createDefaultProfile(opponentId));
+        // Deadlock Prevention: Always lock rows in the same order (e.g. by UUID string comparison)
+        UUID firstId = requestingUserId.compareTo(opponentId) < 0 ? requestingUserId : opponentId;
+        UUID secondId = requestingUserId.compareTo(opponentId) < 0 ? opponentId : requestingUserId;
+
+        // Fetch (and lock) profiles in a consistent order
+        UserArenaProfile firstProfile = profileRepository.findById(firstId)
+                .orElseGet(() -> createDefaultProfile(firstId));
+        UserArenaProfile secondProfile = profileRepository.findById(secondId)
+                .orElseGet(() -> createDefaultProfile(secondId));
+        
+        // Re-assign to p1 (requesting) and p2 (opponent)
+        UserArenaProfile p1Profile = requestingUserId.equals(firstId) ? firstProfile : secondProfile;
+        UserArenaProfile p2Profile = opponentId.equals(firstId) ? firstProfile : secondProfile;
 
         int p1RatingChange = isWinner ? 25 : -15;
         int p2RatingChange = isWinner ? -15 : 25;
@@ -154,6 +166,7 @@ public class ArenaService {
         profileRepository.save(p2Profile);
 
         ArenaMatch match = ArenaMatch.builder()
+                .matchId(request.getMatchId())
                 .player1Id(requestingUserId)
                 .player2Id(opponentId)
                 .winnerId(isWinner ? requestingUserId : opponentId)

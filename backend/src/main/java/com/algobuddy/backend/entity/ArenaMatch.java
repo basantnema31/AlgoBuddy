@@ -22,6 +22,9 @@ public class ArenaMatch {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
+    @Column(name = "match_id", unique = true)
+    private String matchId;
+
     @Column(name = "player1_id", nullable = false)
     private UUID player1Id;
 

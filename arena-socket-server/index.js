@@ -75,6 +75,11 @@ io.on("connection", (socket) => {
     const targetTopic = data.topic || "Arrays";
     const targetDifficulty = data.difficulty || "Easy";
 
+    // Fix: Remove any existing entry for this user to prevent duplicate queueing
+    matchmakingQueue = matchmakingQueue.filter(
+      (p) => p.userId !== data.userId && p.socketId !== socket.id
+    );
+
     // Filter queue to find exact match
     const matchIndex = matchmakingQueue.findIndex(
       (p) => p.topic === targetTopic && p.difficulty === targetDifficulty && p.userId !== data.userId
