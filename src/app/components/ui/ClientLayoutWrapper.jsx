@@ -4,11 +4,14 @@ import { usePathname } from "next/navigation";
 import Chatbot from "@/app/components/ui/Chatbot";
 import Navbar from "@/app/components/navbar";
 import { CommandPalette } from "@/app/components/CommandPalette";
-import GlobalKeyboardShortcuts from "@/app/components/ui/GlobalKeyboardShortcuts";
+import { useGlobalKeyboardShortcuts } from "@/app/hooks/useGlobalKeyboardShortcuts";
+import GlobalShortcutsModal from "@/app/components/ui/GlobalShortcutsModal";
 
 export default function ClientLayoutWrapper({ children }) {
   const pathname = usePathname();
   const isAuthPage = pathname === "/login" || pathname === "/signup";
+
+  useGlobalKeyboardShortcuts();
 
   return (
     <>
@@ -17,7 +20,7 @@ export default function ClientLayoutWrapper({ children }) {
       {children}
       {!isAuthPage && <Chatbot />}
       {!isAuthPage && <CommandPalette />}
-      {!isAuthPage && <GlobalKeyboardShortcuts />}
+      <GlobalShortcutsModal />
     </>
   );
 }
