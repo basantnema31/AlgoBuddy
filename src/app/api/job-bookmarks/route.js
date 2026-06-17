@@ -33,7 +33,7 @@ export async function POST(request) {
         .eq("id", existing.id);
 
       if (deleteError) {
-        console.error("[/api/bookmarks POST] Supabase delete error:", deleteError.message);
+        console.error("[/api/job-bookmarks POST] Supabase delete error:", deleteError.message);
         return jsonResponse({ error: deleteError.message }, 500);
       }
 
@@ -45,7 +45,7 @@ export async function POST(request) {
       .insert({ student_id: authResult.user.id, job_id: jobId });
 
     if (insertError) {
-      console.error("[/api/bookmarks POST] Supabase insert error:", insertError.message);
+      console.error("[/api/job-bookmarks POST] Supabase insert error:", insertError.message);
       return jsonResponse({ error: insertError.message }, 500);
     }
 
@@ -70,7 +70,7 @@ export async function GET(request) {
     const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
-    const { data: jobs, error, count } = await supabase
+    const { data: bookmarks, error, count } = await supabase
       .from("bookmarks")
       .select("id, created_at, job:job_id(*)", { count: "exact" })
       .eq("student_id", authResult.user.id)
@@ -78,17 +78,19 @@ export async function GET(request) {
       .range(skip, skip + limit - 1);
 
     if (error) {
-      console.error("[/api/bookmarks GET] Supabase error:", error.message);
-      return jsonResponse({ jobs: [], bookmarkedIds: [], totalPages: 0, currentPage: page });
+      console.error("[/api/job-bookmarks GET] Supabase error:", error.message);
+      return jsonResponse({ jobs: [], bookmarkedIds: [], totalPages: 0, currentPage: page, totalJobs: 0 });
     }
 
-    const bookmarkedIds = (jobs || []).map((b) => b.job?.id).filter(Boolean);
+    const jobs = (bookmarks || []).map((b) => b.job).filter(Boolean);
+    const bookmarkedIds = jobs.map((j) => j.id);
 
     return jsonResponse({
-      jobs: (jobs || []).map((b) => b.job).filter(Boolean),
+      jobs,
       bookmarkedIds,
       totalPages: Math.ceil((count || 0) / limit),
       currentPage: page,
+      totalJobs: count || 0,
     });
   } catch (error) {
     return errorResponse(error);

@@ -11,9 +11,22 @@ import {
   Megaphone,
   Check,
   Trash2,
+  Briefcase,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 
-const getCategoryIcon = (category) => {
+const getCategoryIcon = (category, message) => {
+  if (category === "Job Application") {
+    const lower = (message || "").toLowerCase();
+    if (lower.includes("accepted")) {
+      return <CheckCircle className="w-5 h-5 text-green-500" />;
+    }
+    if (lower.includes("rejected")) {
+      return <XCircle className="w-5 h-5 text-red-500" />;
+    }
+    return <Briefcase className="w-5 h-5 text-purple-500" />;
+  }
   switch (category) {
     case "Achievement": return <Trophy className="w-5 h-5 text-yellow-500" />;
     case "Practice": return <PenTool className="w-5 h-5 text-blue-500" />;
@@ -22,6 +35,7 @@ const getCategoryIcon = (category) => {
     case "Streak": return <Flame className="w-5 h-5 text-orange-500" />;
     case "Community": return <MessageSquare className="w-5 h-5 text-purple-500" />;
     case "Announcement": return <Megaphone className="w-5 h-5 text-red-500" />;
+    case "Job Alert": return <Briefcase className="w-5 h-5 text-blue-500" />;
     default: return <Megaphone className="w-5 h-5 text-primary" />;
   }
 };
@@ -79,7 +93,7 @@ export default function NotificationCard({ notification, isDropdown = false }) {
 
       {/* Icon */}
       <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-[#1A1A24] border border-surface-200 dark:border-surface-700 shadow-sm ${!read ? 'ring-2 ring-primary/20' : ''}`}>
-        {getCategoryIcon(category)}
+        {getCategoryIcon(category, message)}
       </div>
 
       {/* Content */}

@@ -45,7 +45,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [theme, setTheme] = useState("light");
   const [themeMounted, setThemeMounted] = useState(false);
-
   const pathname = usePathname();
   const router = useRouter();
  

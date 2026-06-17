@@ -1,5 +1,6 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useUser } from "@/features/user/UserContext";
 
 const initialMockNotifications = [
   {
@@ -7,7 +8,7 @@ const initialMockNotifications = [
     category: "Streak",
     title: "🔥 7 Day Streak Achieved",
     message: "You've practiced for 7 days in a row. Keep it up!",
-    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 mins ago
+    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
     read: false,
     priority: "high",
     actionUrl: "/arena",
@@ -17,7 +18,7 @@ const initialMockNotifications = [
     category: "Achievement",
     title: "🏆 Achievement Unlocked",
     message: "You have completed 50 algorithms! You earned the 'Algorithmic Master' badge.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
     read: false,
     priority: "high",
     actionUrl: "/dashboard",
@@ -27,7 +28,7 @@ const initialMockNotifications = [
     category: "Practice",
     title: "📝 Daily Practice Challenge",
     message: "New dynamic programming challenges have been added to your curriculum.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     read: true,
     priority: "medium",
     actionUrl: "/practice",
@@ -37,7 +38,7 @@ const initialMockNotifications = [
     category: "Blog",
     title: "📚 New Blog Available",
     message: "Check out our latest post: 'Understanding Graphs and Tree Traversals'.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(), // 2 days ago
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
     read: true,
     priority: "low",
     actionUrl: "/blog",
@@ -47,7 +48,7 @@ const initialMockNotifications = [
     category: "System",
     title: "🎯 Goal Completed",
     message: "You successfully completed your weekly target of 10 problems.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(), // 3 days ago
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
     read: true,
     priority: "medium",
     actionUrl: "/dashboard",
@@ -57,7 +58,7 @@ const initialMockNotifications = [
     category: "Community",
     title: "💬 New Reply",
     message: "Someone replied to your comment in the 'Two Sum' discussion.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(), // 4 days ago
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
     read: true,
     priority: "low",
     actionUrl: "/community",
@@ -67,7 +68,7 @@ const initialMockNotifications = [
     category: "Announcement",
     title: "🚀 Platform Update",
     message: "AlgoBuddy v2.0 is live! Explore the new notification panel and more.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), // 7 days ago
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
     read: false,
     priority: "high",
     actionUrl: "/",
@@ -85,8 +86,17 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider = ({ children }) => {
+  const { user } = useUser();
   const [notifications, setNotifications] = useState([]);
   const [mounted, setMounted] = useState(false);
+
+  const addNotification = useCallback((notification) => {
+    setNotifications(prev => {
+      const exists = prev.some(n => n.id === notification.id);
+      if (exists) return prev;
+      return [notification, ...prev];
+    });
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -104,6 +114,38 @@ export const NotificationProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    if (!mounted || !user) return;
+
+    const jobIds = new Set();
+
+    async function fetchJobNotifications() {
+      try {
+        const res = await fetch("/api/notifications?limit=20");
+        if (!res.ok) return;
+        const data = await res.json();
+        (data.notifications || []).forEach((n) => {
+          const notifId = `job-${n.id}`;
+          jobIds.add(n.id);
+          addNotification({
+            id: notifId,
+            category: n.type === "application_status_update" ? "Job Application" : "Job Alert",
+            title: n.type === "application_status_update" ? "Application Status Update" : "New Job Posted",
+            message: n.message,
+            timestamp: n.created_at,
+            read: n.read,
+            priority: "medium",
+            actionUrl: n.type === "application_status_update" ? "/my-applications" : "/student-jobs",
+          });
+        });
+      } catch (e) {
+        console.error("Error fetching job notifications:", e);
+      }
+    }
+
+    fetchJobNotifications();
+  }, [mounted, user, addNotification]);
+
+  useEffect(() => {
     if (mounted) {
       try {
         localStorage.setItem("algobuddy_notifications", JSON.stringify(notifications));
@@ -119,10 +161,29 @@ export const NotificationProvider = ({ children }) => {
     setNotifications(prev =>
       prev.map(n => (n.id === id ? { ...n, read: true } : n))
     );
+
+    if (id.startsWith("job-")) {
+      const realId = id.replace("job-", "");
+      fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationIds: [realId] }),
+      }).catch(() => {});
+    }
   };
 
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    const jobNotifIds = notifications
+      .filter(n => n.id.startsWith("job-") && !n.read)
+      .map(n => n.id.replace("job-", ""));
+    if (jobNotifIds.length > 0) {
+      fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationIds: jobNotifIds }),
+      }).catch(() => {});
+    }
   };
 
   const deleteNotification = (id) => {
@@ -142,7 +203,8 @@ export const NotificationProvider = ({ children }) => {
         markAsRead,
         markAllAsRead,
         deleteNotification,
-        clearAll
+        clearAll,
+        addNotification,
       }}
     >
       {children}
