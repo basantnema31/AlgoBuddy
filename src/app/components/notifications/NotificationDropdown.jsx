@@ -41,34 +41,9 @@ export default function NotificationDropdown() {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="
-          relative
-          w-9 h-9
-          flex items-center justify-center
-          rounded-full
-          transition-all duration-200
-          hover:-translate-y-0.5
-          bg-gradient-to-br
-          from-purple-500/10
-          to-fuchsia-500/10
-          hover:from-purple-500/20
-          hover:to-fuchsia-500/20
-          focus:outline-none
-          focus:ring-2 focus:ring-purple-500/50
-          focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900
-        "
-          aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
-        >
-        <div className="bg-gradient-to-br from-[#8A2BE2] to-[#D000FF] bg-clip-text">
-          <Bell
-            className="
-            h-5 w-5
-            text-[#a435f0]
-            transition-all duration-200
-            hover:text-[#d000ff]
-          "
-          />
-        </div>
+        className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-100 dark:hover:bg-udemy-dark-surface transition-colors"
+      >
+        <Bell className="w-5 h-5 text-surface-600 dark:text-surface-400" />
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
             {unreadCount > 99 ? '99+' : unreadCount}
