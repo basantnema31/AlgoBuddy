@@ -11,6 +11,7 @@ import TutorialOverlay from "@/app/components/ui/TutorialOverlay";
 import BackToTop from "../components/ui/backtotop";
 import BookmarkSection from "@/app/components/ui/BookmarkSection";
 import DifficultySelector from "@/app/components/DifficultySelector";
+import KeyboardShortcuts from "@/app/components/KeyboardShortcuts";
 
 export const metadata = {
   title: "Algorithm Visualizer | AlgoBuddy",
@@ -783,6 +784,8 @@ const Visualizer = () => {
       style={{ fontFamily: "'Inter', 'Source Sans 3', sans-serif" }}
     >
       <TutorialOverlay />
+
+      <KeyboardShortcuts />
 
       <DifficultySelector />
 
